@@ -13,6 +13,7 @@ let saveimage = false;
 let colors = ["black","blue","tomato","green","orange",235];
 let colorSelection =0;
 let wheel;
+let breakFocus=false;
 
 let positionImage = false;
 let resizeImage = false;
@@ -70,9 +71,12 @@ function draw(){
 
   // show selected line clearly
   let els = document.getElementsByClassName("line_box");
+
+  if(!breakFocus)
   for(let i=0; i<els.length; i++){
     if(showMe==i){
       els[i].style.backgroundColor = "gold";
+      console.log(els[i])
       els[i].scrollIntoView();
     }
     else els[i].style.backgroundColor = "white";
@@ -342,13 +346,17 @@ function keyTyped() {
   }
 
   if(key=='s'){
-    saveimage = true;
-    createCanvas(interval,interval);
+    saveImage();
   }
 
   if(key=='q') saveDataToFile();
 
   if(key=='d') deleteLinesOfSelectedColor();
+}
+
+function saveImage(){
+  saveimage = true;
+  createCanvas(interval,interval);
 }
 
 
@@ -387,15 +395,19 @@ function saveDataToFile(){
 function showLast(){
   showMe = constrain(showMe-1, -1, strokes.length-1);
   repeats =0;
+
+  breakFocus=false;
   flushBuffer();
-  console.log(showMe+"/"+(strokes.length-1));
+  //console.log(showMe+"/"+(strokes.length-1));
 }
 
 function showNext(){
   showMe = constrain(showMe+1, -1, strokes.length-1);
   repeats =0;
+
+  breakFocus=false;
   flushBuffer();
-  console.log(showMe+"/"+(strokes.length-1));
+  //console.log(showMe+"/"+(strokes.length-1));
 }
 
 function showSingle(){

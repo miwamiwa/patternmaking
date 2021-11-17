@@ -15,12 +15,15 @@ let swatches = {
   coords:{x:0,y:0}
 }
 
-let ui_fill = "#cccf";
+let ui_fill = "#666f";
 let img;
 let imageDisplayed = false;
 let brushButtons;
 let finalizeButton;
 let colorCheckboxes = [];
+let grille;
+let imgarea;
+let loadarea;
 
 function setupInterface(){
   ui = {
@@ -46,18 +49,23 @@ function setupInterface(){
     spaceY: 80
   }
 
-  brushTxt = createDiv("brush size: "+brushSize);
-  position(brushTxt,brushButtons.x,brushButtons.y +7);
+  brushTxt = createDiv("epaisseur: "+brushSize);
+  position(brushTxt,brushButtons.x,brushButtons.y +15);
 
   let brushPlusButton = createButton("+ <span class='keys'>[+]</span>");
-  position(brushPlusButton,brushButtons.x + 160,brushButtons.y);
+  position(brushPlusButton,brushButtons.x + 160,brushButtons.y +10);
   brushPlusButton.mousePressed(plusBrushSize);
 
   let brushMinusButton = createButton("- <span class='keys'>[-]</span>");
-  position(brushMinusButton,brushButtons.x+215,brushButtons.y)
+  position(brushMinusButton,brushButtons.x+215,brushButtons.y +10)
   brushMinusButton.mousePressed(minusBrushSize);
 
-  brushButtons += 200;
+  grille = {
+    x: brushButtons.x + 370,
+    y: brushButtons.y - 80
+  }
+
+
 
   /*
   finalizeButton = createButton("finalize<br>stroke <span class='keys'>[enter]</span>");
@@ -65,66 +73,118 @@ function setupInterface(){
   finalizeButton.mousePressed(flushBuffer);
   */
 
-  let toggleGrid = createButton("Toggle Grid");
-  position(toggleGrid, brushButtons.x + 200, brushButtons.y-30);
+  let grilleDiv = createDiv("grille");
+  position(grilleDiv, grille.x, grille.y );
+
+  let toggleGrid = createButton("deriere");
+  position(toggleGrid, grille.x, grille.y + 15);
   toggleGrid.mousePressed(()=>{
     gridEnabled = !gridEnabled;
   });
 
-  let toggleGrid2 = createButton("Toggle Grid2");
-  position(toggleGrid2, brushButtons.x + 280, brushButtons.y-30);
+  let toggleGrid2 = createButton("devant");
+  position(toggleGrid2, grille.x, grille.y + 38 );
   toggleGrid2.mousePressed(()=>{
     frontGridEnabled = !frontGridEnabled;
   });
 
-  let gridPlus = createButton("Grid ++");
-  position(gridPlus, brushButtons.x + 200, brushButtons.y -10);
+  let gridPlus = createButton("++");
+  position(gridPlus,  grille.x, grille.y + 61 );
   gridPlus.mousePressed(()=>{
     interval += 5;
   });
 
 
-  let gridMinus = createButton("Grid --");
-  position(gridMinus, brushButtons.x + 200, brushButtons.y + 10);
+  let gridMinus = createButton("--");
+  position(gridMinus,  grille.x + 35, grille.y + 61);
   gridMinus.mousePressed(()=>{
     interval -= 5;
   });
 
+  let repeteDiv = createDiv("duplicats");
+  position(repeteDiv, grille.x, grille.y + 86);
 
-  let repeatPlus = createButton("repeat ++");
-  position(repeatPlus, brushButtons.x + 200, brushButtons.y + 35);
+  let repeatPlus = createButton("+");
+  position(repeatPlus, grille.x + 0, grille.y + 102);
   repeatPlus.mousePressed(()=>{
     defaultRepeats ++;
     repeats = defaultRepeats;
   });
 
 
-  let repeatMinus = createButton("repeat --");
-  position(repeatMinus, brushButtons.x + 200, brushButtons.y + 55);
+  let repeatMinus = createButton("-");
+  position(repeatMinus, grille.x + 28, grille.y + 102);
   repeatMinus.mousePressed(()=>{
     defaultRepeats --;
     repeats = defaultRepeats;
   });
 
-  let imageUpload = createFileInput(handleImageFile);
-  position(imageUpload, brushButtons.x+200, brushButtons.y + 80);
+  imgarea = {
+    x: grille.x + 20,
+    y: grille.y
+  }
 
-  let toggleImage = createButton("toggle image");
-  position(toggleImage, brushButtons.x+200, brushButtons.y+100);
+  let imageDiv = createDiv("image");
+  position(imageDiv, imgarea.x + 80, imgarea.y);
+
+  let imageUpload = createFileInput(handleImageFile);
+  position(imageUpload, imgarea.x + 80, imgarea.y + 20);
+
+  let instruImage = createDiv(
+    "<span class='keys'>[o]</span> = resize"
+    +"<br><span class='keys'>[p]</span> = position"
+  );
+  position(instruImage, imgarea.x + 80, imgarea.y+74);
+
+  let toggleImage = createButton("toggle");
+  position(toggleImage, imgarea.x + 80, imgarea.y + 47);
   toggleImage.mousePressed(()=>{
     if(img!=null)
     imageDisplayed = !imageDisplayed;
   });
 
 
-  let loadSaveFile = createFileInput(handleSaveFile);
-  position(loadSaveFile, brushButtons.x + 100, brushButtons.y + 75);
+  loadarea = {
+    x: grille.x + 235,
+    y: grille.y - 0
+  }
 
+  let saveDiv = createDiv("load file");
+  position(saveDiv, loadarea.x,loadarea.y);
+
+  let loadSaveFile = createFileInput(handleSaveFile);
+  position(loadSaveFile, loadarea.x,loadarea.y + 15);
+
+  let saveBtn = createButton("save project " + kspan("q"));
+  position(saveBtn,  loadarea.x + 90,loadarea.y+0 );
+  saveBtn.mousePressed(()=>{
+    saveDataToFile();
+  });
+
+  let savePngBtn = createButton("save png " + kspan("s"));
+  position(savePngBtn,  loadarea.x + 90,loadarea.y+22 );
+  savePngBtn.mousePressed(()=>{
+    saveImage();
+  });
+
+
+  let newBtn = createButton("efface toute "+kspan("n"));
+  position(newBtn,  loadarea.x,loadarea.y + 75);
+  newBtn.mousePressed(()=>{
+    clearEverything();
+  });
+
+  let eraseColorBtn = createButton("efface couleur selectionee "+kspan("d"));
+  position(eraseColorBtn,  loadarea.x,loadarea.y + 97);
+  eraseColorBtn.mousePressed(()=>{
+    clearEverything();
+  });
 
   // right ui!
 
   rightui_el = createDiv();
   rightui_el.elt.setAttribute("class","rightUI");
+  rightui_el.elt.setAttribute("onscroll","onScroll()");
 
   let toggleRepeat = createButton("Répéter <span class='keys'>[c], [v]</span>");
   toggleRepeat.mousePressed(()=>{
@@ -135,7 +195,7 @@ function setupInterface(){
   toggleRepeat.class("show_all_btn");
 
   let showAll = createButton("Display toute");
-  let scrollThingsTxt = createDiv("<span class='keys'>[z], [x]</span> to search");
+  let scrollThingsTxt = createDiv("<span class='keys'>[z],[x]</span> to search");
   scrollThingsTxt.class("show_all_btn");
 
   showAll.mousePressed(()=>{
@@ -147,9 +207,17 @@ function setupInterface(){
   showAll.class("show_all_btn");
 
 
-  createDiv("[N] to clear screen. [S] to save seamless square. If there's an image, O to resize and P to position image.")
+  //createDiv("[N] to clear screen. [S] to save seamless square. If there's an image, O to resize and P to position image.")
 }
 
+function kspan(input){
+  return "<span class='keys'>["+input+"]</span>";
+}
+
+
+function onScroll(){
+  breakFocus=true;
+}
 
 function handleImageFile(file){
   if (file.type === 'image') {
@@ -189,6 +257,12 @@ function showInterface(){
   noStroke();
   fill(ui_fill);
   rect(0,ui.y,width, interfaceH);
+
+  stroke(185);
+  strokeWeight(1);
+  line(grille.x - 20,grille.y - 10,grille.x - 20,grille.y+160);
+  line(imgarea.x + 60, imgarea.y - 10, imgarea.x + 60, imgarea.y+160);
+  line(loadarea.x - 20,loadarea.y,loadarea.x - 20,loadarea.y+160);
 
   swatches.selection =-1;
 
@@ -235,7 +309,7 @@ function showInterface(){
   // show brushsize
   fill(200);
   stroke(150);
-  circle(swatches.indent + 98,ui.y+swatches.y + 68, brushSize);
+  circle(swatches.indent + 98,ui.y+swatches.y + 75, brushSize);
   //fill(0);
   //text(brushSize, swatches.indent + 145,ui.y+swatches.y + 68);
 
@@ -256,14 +330,16 @@ function refreshRightUI(){
   }
 
   rui = [];
+
   for(let i=0; i<strokes.length; i++){
+
     let controlpannel = createDiv(`${i}  `);
-    //position(controlpannel, rightui.x + 15, 10+i*90);
     controlpannel.parent(rightui_el);
     controlpannel.class("line_box");
+
     controlpannel.mousePressed(()=>{
       showMe = i;
-      //flushBuffer();
+      breakFocus=false;
     });
 
     let deleteBtn = createButton("delete");
@@ -275,7 +351,7 @@ function refreshRightUI(){
     let minusThickness = createButton("-");
     minusThickness.parent(controlpannel);
 
-    let colorSelect = createButton("couleur");
+    let colorSelect = createButton("colo");
     colorSelect.parent(controlpannel);
     colorSelect.mousePressed(()=>{
       colorSelector =i;

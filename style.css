@@ -17,7 +17,7 @@ button{
 
 .rightUI{
   position:fixed;
-  background-color:#666f;
+  background-color:#777b;
   width:220px;
   height:96vh;
   overflow-y:scroll;
@@ -43,4 +43,8 @@ button{
 
 .keys{
   color:#99df;
+}
+
+input[type='file'] {
+  color: transparent;
 }
