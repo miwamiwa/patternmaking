@@ -1,5 +1,28 @@
 *{
   font-size:12px;
+  font-weight:bold;
+  font-family:courier;
+}
+
+body{
+  background-color:#666f;
+  overflow:hidden;
+}
+
+button{
+  background-color:#333f;
+  color:#cccf;
+  font-size:12px;
+}
+
+.rightUI{
+  position:fixed;
+  background-color:#666f;
+  width:220px;
+  height:96vh;
+  overflow-y:scroll;
+  top:8px;
+  right:8px;
 }
 
 .deletebtn{
@@ -13,10 +36,11 @@
 }
 
 .show_all_btn{
-  font-size:16px;
-  margin:12px;
+  margin-top:4px;
+  margin-left:4px;
+  margin-right:4px;
 }
 
 .keys{
-  color:blue;
+  color:#99df;
 }

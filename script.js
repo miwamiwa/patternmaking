@@ -1,8 +1,8 @@
 let color = "black";
 let interval = 300;
-let defaultRepeats = 3;
+let defaultRepeats = 1;
 let repeats =defaultRepeats;
-let brushSize = 1;
+let brushSize = 8;
 let showMe =-1;
 let buffer = [];
 let drawing = false;
@@ -25,13 +25,18 @@ let imgSize = {
   x:300,y:300
 }
 
+let PMouseX =0;
+let PMouseY =0;
+
 function preload(){
   wheel = loadImage("wheel.png");
 }
 
 function setup(){
   preloadColorPicker();
-
+  PMouseX = mouseX;
+  PMouseY = mouseY;
+  frameRate(5);
   createCanvas(window.innerWidth-30, window.innerHeight-30);
   imageMode(CENTER);
   setupInterface();
@@ -56,9 +61,9 @@ function clearEverything(){
 }
 
 function draw(){
-
-  if(buffer.length>0) finalizeButton.show();
-  else finalizeButton.hide();
+  //if(drawing&&mouseIsPressed) return;
+  //if(buffer.length>0) finalizeButton.show();
+  //else finalizeButton.hide();
 
   background(235);
 
@@ -66,7 +71,10 @@ function draw(){
   // show selected line clearly
   let els = document.getElementsByClassName("line_box");
   for(let i=0; i<els.length; i++){
-    if(showMe==i) els[i].style.backgroundColor = "gold";
+    if(showMe==i){
+      els[i].style.backgroundColor = "gold";
+      els[i].scrollIntoView();
+    }
     else els[i].style.backgroundColor = "white";
   }
 
@@ -76,87 +84,18 @@ function draw(){
   }
 
   if(gridEnabled && !saveimage){
-    stroke(255);
-    strokeWeight(1);
-    for(let x=width/2-defaultRepeats*interval; x<width/2+defaultRepeats*interval; x+=interval){
-
-      line(x, 0, x, height);
-    }
-
-    for(let y=height/2-defaultRepeats*interval; y<height/2+defaultRepeats*interval; y+=interval){
-
-      line(0, y, width, y);
-    }
+    showGrid();
   }
 
-  for(let j=0; j<strokes.length; j++){
+  displayStrokes();
 
-
-    for(let i=0; i<strokes[j].length; i++){
-      for(let x=-repeats; x<repeats+1; x++){
-        for(let y=-repeats; y<repeats+1; y++){
-
-            let l = strokes[j][i];
-            if(colorCheckboxes[l.stroke].checked()){
-
-              if(showMe==-1||showMe==j)
-                stroke(colors[l.stroke]);
-              else stroke(0,20);
-              strokeWeight(l.size);
-              line(
-                x*interval+l.x1,
-                y*interval+l.y1,
-                x*interval+l.x2,
-                y*interval+l.y2
-              );
-            }
-
-          }
-
-        }
-      }
-
-  }
-
-  for(let i=0; i<buffer.length; i++){
-    for(let x=-repeats; x<repeats+1; x++){
-      for(let y=-repeats; y<repeats+1; y++){
-
-          let l = buffer[i];
-          stroke(colors[colorSelection]);
-          strokeWeight(brushSize);
-          line(
-            x*interval+l.x1,
-            y*interval+l.y1,
-            x*interval+l.x2,
-            y*interval+l.y2
-          );
-
-
-      }
-    }
-  }
+  displayLineBuffer();
 
   if(frontGridEnabled&&!saveimage){
-    stroke(255);
-    strokeWeight(1);
-    for(let x=width/2-defaultRepeats*interval; x<width/2+defaultRepeats*interval; x+=interval){
-
-      line(x, 0, x, height);
-    }
-
-    for(let y=height/2-defaultRepeats*interval; y<height/2+defaultRepeats*interval; y+=interval){
-
-      line(0, y, width, y);
-    }
+    showGrid();
   }
 
-  // draw point under mouse
-  if(!saveimage){
-    stroke(color);
-    strokeWeight(brushSize);
-    point(mouseX,mouseY);
-  }
+  showPointer();
 
 
   // interface
@@ -170,7 +109,111 @@ function draw(){
   }
 }
 
+
+
+function showPointer(){
+  // draw point under mouse
+  if(!saveimage){
+    stroke(color);
+    strokeWeight(brushSize);
+    point(mouseX,mouseY);
+  }
+}
+
+
+
+
+
+function displayStrokes(){
+
+  for(let j=0; j<strokes.length; j++){
+
+    let c = strokes[j][0].stroke;
+    let s = strokes[j][0].size;
+
+    if(colorCheckboxes[c].checked()){
+
+      if(showMe==-1||showMe==j)
+      stroke(colors[c]);
+      else stroke(0,20);
+      strokeWeight(s);
+
+      for(let i=0; i<strokes[j].length; i++){
+
+        let l = strokes[j][i];
+
+        for(let x=-repeats; x<repeats+1; x++){
+          for(let y=-repeats; y<repeats+1; y++){
+
+            line(
+              x*interval+l.x1,
+              y*interval+l.y1,
+              x*interval+l.x2,
+              y*interval+l.y2
+            );
+          }
+        }
+      }
+    }
+  }
+}
+
+
+
+
+function deleteLinesOfSelectedColor(){
+  for(let i=strokes.length-1; i>=0; i--){
+    if(strokes[i][0].stroke==colorSelection) strokes.splice(i,1);
+  }
+
+  refreshRightUI();
+}
+
+
+
+
+
+function displayLineBuffer(){
+  for(let i=0; i<buffer.length; i++){
+    for(let x=-repeats; x<repeats+1; x++){
+      for(let y=-repeats; y<repeats+1; y++){
+
+        let l = buffer[i];
+        stroke(colors[colorSelection]);
+        strokeWeight(brushSize);
+        line(
+          x*interval+l.x1,
+          y*interval+l.y1,
+          x*interval+l.x2,
+          y*interval+l.y2
+        );
+      }
+    }
+  }
+}
+
+
+
+
+
+function showGrid(){
+
+  stroke(255);
+  strokeWeight(1);
+  for(let x=width/2+ interval/4-repeats*interval; x<width/2+repeats*interval; x+=interval){
+    line(x, 0, x, height);
+  }
+  for(let y=height/2+ interval/4-repeats*interval; y<height/2+repeats*interval; y+=interval){
+    line(0, y, width, y);
+  }
+}
+
+
+
 function mousePressed(){
+
+  PMouseX = mouseX;
+  PMouseY = mouseY;
 
   if(positionImage||resizeImage){
     positionImage = false;
@@ -188,6 +231,9 @@ function mousePressed(){
   }
 }
 
+
+
+
 function mouseMoved(){
   if(positionImage){
     imgPos.x = mouseX;
@@ -197,7 +243,16 @@ function mouseMoved(){
     imgSize.x += mouseX - pmouseX;
     imgSize.y += mouseY - pmouseY;
   }
+
+  // draw point under mouse
+  if(!saveimage){
+    stroke(color);
+    strokeWeight(brushSize);
+    point(mouseX,mouseY);
+  }
 }
+
+
 
 
 
@@ -207,7 +262,7 @@ function flushBuffer(){
     buffer[i].stroke=colorSelection;
   }
   if(buffer.length>0)
-    strokes.push(buffer);
+  strokes.push(buffer);
   buffer = [];
 
   refreshRightUI();
@@ -215,10 +270,19 @@ function flushBuffer(){
 
 
 
+
+
+
 function mouseReleased(){
   if(drawing)
   flushBuffer();
 }
+
+
+
+
+
+
 
 function mouseDragged(){
   if(!drawing){
@@ -234,9 +298,15 @@ function mouseDragged(){
     stroke:color,
     x1:mouseX,
     y1:mouseY,
-    x2:pmouseX,
-    y2:pmouseY
+    x2:PMouseX,
+    y2:PMouseY
   });
+
+  stroke("green");//colors[colorSelection]);
+  line(mouseX,mouseY,PMouseX,PMouseY);
+
+  PMouseX = mouseX;
+  PMouseY = mouseY;
 }
 
 function keyTyped() {
@@ -249,6 +319,9 @@ function keyTyped() {
   color = colors[colorSelection];
 
   if(keyCode==13) flushBuffer();
+
+  // esc
+  if(keyCode==27) selectNone();
 
   if(key=='n') clearEverything();
   if(key=='+') plusBrushSize();
@@ -272,6 +345,43 @@ function keyTyped() {
     saveimage = true;
     createCanvas(interval,interval);
   }
+
+  if(key=='q') saveDataToFile();
+
+  if(key=='d') deleteLinesOfSelectedColor();
+}
+
+
+
+function selectNone(){
+  console.log("select nonw")
+  showMe = -1;
+  repeats = defaultRepeats;
+}
+
+
+
+
+function saveDataToFile(){
+  flushBuffer();
+
+  let toutledata = {
+    strokes:strokes,
+    colors:colors,
+    interval:interval
+  }
+  let str = JSON.stringify(toutledata);
+
+  // name the file
+  let filename = prompt("Name the save file","MyPattern");
+  if(filename==null) filename="untitled";
+
+  // write file
+  let writer = createWriter(filename+".txt");
+  writer.print(str);
+
+  writer.close();
+  writer.clear();
 }
 
 function showLast(){
@@ -303,9 +413,11 @@ function showAll(){
 function plusBrushSize(){
   brushSize++;
   strokeWeight(brushSize);
+  brushTxt.elt.innerHTML = "brush size: "+brushSize;
 }
 
 function minusBrushSize(){
   brushSize--;
   strokeWeight(brushSize);
+  brushTxt.elt.innerHTML = "brush size: "+brushSize;
 }

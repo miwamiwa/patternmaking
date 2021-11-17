@@ -1,21 +1,21 @@
 let ui;
 let rightui;
-let interfaceH = 150;
+let interfaceH = 120;
 let interfaceW = 150;
 let colorSelector =-1;
-
+let brushTxt;
 let PreventBWChange=false;
 
 let swatches = {
-  size:80,
-  spacing:80,
-  indent:45,
-  y:75,
+  size:60,
+  spacing:60,
+  indent:35,
+  y:35,
   selection:-1,
   coords:{x:0,y:0}
 }
 
-let ui_fill = 255;
+let ui_fill = "#cccf";
 let img;
 let imageDisplayed = false;
 let brushButtons;
@@ -41,22 +41,29 @@ function setupInterface(){
   }
 
   brushButtons = {
-    x: swatches.indent + swatches.spacing * colors.length + 0,
-    y: ui.y + 40,
+    x: swatches.indent - 20,
+    y: ui.y + 100,
     spaceY: 80
   }
 
-  let brushPlusButton = createButton("brush size ++<br><span class='keys'>press [+]</span>");
-  position(brushPlusButton,brushButtons.x,brushButtons.y-10);
+  brushTxt = createDiv("brush size: "+brushSize);
+  position(brushTxt,brushButtons.x,brushButtons.y +7);
+
+  let brushPlusButton = createButton("+ <span class='keys'>[+]</span>");
+  position(brushPlusButton,brushButtons.x + 160,brushButtons.y);
   brushPlusButton.mousePressed(plusBrushSize);
 
-  let brushMinusButton = createButton("brush size - -<br><span class='keys'>press [-]</span>");
-  position(brushMinusButton,brushButtons.x,brushButtons.y+brushButtons.spaceY)
+  let brushMinusButton = createButton("- <span class='keys'>[-]</span>");
+  position(brushMinusButton,brushButtons.x+215,brushButtons.y)
   brushMinusButton.mousePressed(minusBrushSize);
 
-  finalizeButton = createButton("finalize<br>stroke<br><span class='keys'>press [enter]</span>");
+  brushButtons += 200;
+
+  /*
+  finalizeButton = createButton("finalize<br>stroke <span class='keys'>[enter]</span>");
   position(finalizeButton, brushButtons.x + 100, brushButtons.y + 40);
   finalizeButton.mousePressed(flushBuffer);
+  */
 
   let toggleGrid = createButton("Toggle Grid");
   position(toggleGrid, brushButtons.x + 200, brushButtons.y-30);
@@ -99,7 +106,7 @@ function setupInterface(){
     repeats = defaultRepeats;
   });
 
-  let imageUpload = createFileInput(handleFile);
+  let imageUpload = createFileInput(handleImageFile);
   position(imageUpload, brushButtons.x+200, brushButtons.y + 80);
 
   let toggleImage = createButton("toggle image");
@@ -110,20 +117,16 @@ function setupInterface(){
   });
 
 
+  let loadSaveFile = createFileInput(handleSaveFile);
+  position(loadSaveFile, brushButtons.x + 100, brushButtons.y + 75);
+
+
   // right ui!
 
   rightui_el = createDiv();
-  rightui_el.elt.setAttribute("style",
-  `position:fixed;
-  background-color:grey;
-  width:180px;
-  height:96vh;
-  overflow-y:scroll;
-  top:8px;
-  right:8px;`
-  );
+  rightui_el.elt.setAttribute("class","rightUI");
 
-  let toggleRepeat = createButton("Toggle Repetition:<br><span class='keys'>[c] = off, [v] = on</span>");
+  let toggleRepeat = createButton("Répéter <span class='keys'>[c], [v]</span>");
   toggleRepeat.mousePressed(()=>{
     if(repeats==defaultRepeats) repeats=0;
     else repeats = defaultRepeats;
@@ -131,20 +134,24 @@ function setupInterface(){
   toggleRepeat.parent(rightui_el);
   toggleRepeat.class("show_all_btn");
 
-  let showAll = createButton("Show All Lines<br><span class='keys'>[z] and [x] to search</span>");
+  let showAll = createButton("Display toute");
+  let scrollThingsTxt = createDiv("<span class='keys'>[z], [x]</span> to search");
+  scrollThingsTxt.class("show_all_btn");
+
   showAll.mousePressed(()=>{
     showMe =-1;
     //repeats = defaultRepeats;
   });
   showAll.parent(rightui_el);
+  scrollThingsTxt.parent(rightui_el);
   showAll.class("show_all_btn");
 
 
-  createDiv("Press N to clear screen. Press S to save seamless square. If there's an image, press O to resize and P to position image.")
+  createDiv("[N] to clear screen. [S] to save seamless square. If there's an image, O to resize and P to position image.")
 }
 
 
-function handleFile(file){
+function handleImageFile(file){
   if (file.type === 'image') {
     img = createImg(file.data, '');
     img.hide();
@@ -155,10 +162,23 @@ function handleFile(file){
   }
 }
 
+
+function handleSaveFile(file){
+
+  if(file.type=="text"){
+    let savedata = JSON.parse(file.data);
+    strokes = savedata.strokes;
+    colors = savedata.colors;
+    interval = savedata.interval;
+  }
+
+  refreshRightUI();
+}
+
 function position(el,x,y){
-  el.elt.setAttribute("style",
-  `position:absolute;top:${y}px;left:${x}px;`
-  );
+  el.elt.style.position="absolute";
+  el.elt.style.top=y+"px";
+  el.elt.style.left=x+"px";
 }
 
 
@@ -187,6 +207,7 @@ function showInterface(){
       colorSelection = i;
       color = colors[colorSelection];
       if(colorSelector!=-1){
+        console.log("set color to "+i)
         strokes[colorSelector].forEach(stroke=>{
           stroke.stroke = i;
         });
@@ -214,9 +235,9 @@ function showInterface(){
   // show brushsize
   fill(200);
   stroke(150);
-  circle(brushButtons.x + 30,brushButtons.y + 40,brushSize);
-  fill(0);
-  text(brushSize, brushButtons.x + 0,brushButtons.y + 45);
+  circle(swatches.indent + 98,ui.y+swatches.y + 68, brushSize);
+  //fill(0);
+  //text(brushSize, swatches.indent + 145,ui.y+swatches.y + 68);
 
 
 
@@ -236,7 +257,7 @@ function refreshRightUI(){
 
   rui = [];
   for(let i=0; i<strokes.length; i++){
-    let controlpannel = createDiv(`Line ${i}  `);
+    let controlpannel = createDiv(`${i}  `);
     //position(controlpannel, rightui.x + 15, 10+i*90);
     controlpannel.parent(rightui_el);
     controlpannel.class("line_box");
@@ -249,24 +270,33 @@ function refreshRightUI(){
     deleteBtn.parent(controlpannel);
     deleteBtn.class("deletebtn");
 
-    let plusThickness = createButton("++");
+    let plusThickness = createButton("+");
     plusThickness.parent(controlpannel);
-    let minusThickness = createButton("--");
+    let minusThickness = createButton("-");
     minusThickness.parent(controlpannel);
-    let moveLeft = createButton("move left");
-    moveLeft.parent(controlpannel);
-    let moveRight = createButton("move right");
-    moveRight.parent(controlpannel);
-    let moveUp = createButton("move up");
-    moveUp.parent(controlpannel);
-    let moveDown = createButton("move down");
-    moveDown.parent(controlpannel);
 
-    let colorSelect = createButton("select color");
+    let colorSelect = createButton("couleur");
     colorSelect.parent(controlpannel);
     colorSelect.mousePressed(()=>{
       colorSelector =i;
+      console.log("select my color "+ i)
+      refreshRightUI();
     });
+    colorSelect.elt.style.color=colors[strokes[i][0].stroke];
+    colorSelect.elt.style.backgroundColor="white";
+
+    controlpannel.elt.innerHTML+="<br>";
+
+    let moveLeft = createButton("gau");
+    moveLeft.parent(controlpannel);
+    let moveRight = createButton("dro");
+    moveRight.parent(controlpannel);
+    let moveUp = createButton("hau");
+    moveUp.parent(controlpannel);
+    let moveDown = createButton("bas");
+    moveDown.parent(controlpannel);
+
+
 
     deleteBtn.mousePressed(()=>{
       strokes.splice(i,1);
