@@ -161,7 +161,7 @@ function setupInterface(){
   let eraseColorBtn = createButton("efface couleur selectionee "+kspan("d"));
   position(eraseColorBtn,  loadarea.x,loadarea.y + 97);
   eraseColorBtn.mousePressed(()=>{
-    clearEverything();
+    deleteLinesOfSelectedColor();
   });
 
   // right ui!

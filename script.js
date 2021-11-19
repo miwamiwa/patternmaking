@@ -183,6 +183,7 @@ function displayStrokes(){
 // remove all lines matching the currently selected color.
 function deleteLinesOfSelectedColor(){
   for(let i=strokes.length-1; i>=0; i--){
+    //console.log(strokes[i], colorSelection)
     if(strokes[i][0].stroke==colorSelection) strokes.splice(i,1);
   }
   refreshRightUI();
