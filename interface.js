@@ -1,7 +1,7 @@
 let ui;
 let rightui;
 let interfaceH = 120;
-let interfaceW = 150;
+let interfaceW = 200;
 let colorSelector =-1;
 let brushTxt;
 let PreventBWChange=false;
@@ -22,7 +22,7 @@ let brushButtons;
 let finalizeButton;
 let colorCheckboxes = [];
 let grille;
-let imgarea;
+let imgArea;
 let loadarea;
 
 function setupInterface(){
@@ -101,43 +101,27 @@ function setupInterface(){
     interval -= 5;
   });
 
-  let repeteDiv = createDiv("duplicats");
-  position(repeteDiv, grille.x, grille.y + 86);
-
-  let repeatPlus = createButton("+");
-  position(repeatPlus, grille.x + 0, grille.y + 102);
-  repeatPlus.mousePressed(()=>{
-    defaultRepeats ++;
-    repeats = defaultRepeats;
-  });
 
 
-  let repeatMinus = createButton("-");
-  position(repeatMinus, grille.x + 28, grille.y + 102);
-  repeatMinus.mousePressed(()=>{
-    defaultRepeats --;
-    repeats = defaultRepeats;
-  });
-
-  imgarea = {
+  imgArea = {
     x: grille.x + 20,
     y: grille.y
   }
 
   let imageDiv = createDiv("image");
-  position(imageDiv, imgarea.x + 80, imgarea.y);
+  position(imageDiv, imgArea.x + 80, imgArea.y);
 
   let imageUpload = createFileInput(handleImageFile);
-  position(imageUpload, imgarea.x + 80, imgarea.y + 20);
+  position(imageUpload, imgArea.x + 80, imgArea.y + 20);
 
   let instruImage = createDiv(
     "<span class='keys'>[o]</span> = resize"
     +"<br><span class='keys'>[p]</span> = position"
   );
-  position(instruImage, imgarea.x + 80, imgarea.y+74);
+  position(instruImage, imgArea.x + 80, imgArea.y+74);
 
   let toggleImage = createButton("toggle");
-  position(toggleImage, imgarea.x + 80, imgarea.y + 47);
+  position(toggleImage, imgArea.x + 80, imgArea.y + 47);
   toggleImage.mousePressed(()=>{
     if(img!=null)
     imageDisplayed = !imageDisplayed;
@@ -184,7 +168,7 @@ function setupInterface(){
 
   rightui_el = createDiv();
   rightui_el.elt.setAttribute("class","rightUI");
-  rightui_el.elt.setAttribute("onscroll","onScroll()");
+  rightui_el.elt.setAttribute("onscroll","doscroll()");
 
   let toggleRepeat = createButton("Répéter <span class='keys'>[c], [v]</span>");
   toggleRepeat.mousePressed(()=>{
@@ -192,11 +176,35 @@ function setupInterface(){
     else repeats = defaultRepeats;
   });
   toggleRepeat.parent(rightui_el);
-  toggleRepeat.class("show_all_btn");
+  toggleRepeat.elt.setAttribute("class","show_all_btn");
+
+  let repeteDiv = createDiv("duplicats");
+  repeteDiv.class("repeteDiv");
+  repeteDiv.parent(rightui_el);
+  //position(repeteDiv, grille.x, grille.y + 86);
+
+  let repeatPlus = createButton("+");
+  //position(repeatPlus, grille.x + 0, grille.y + 102);
+  repeatPlus.parent(repeteDiv);
+  repeatPlus.elt.classList.add("plusminus");
+  repeatPlus.mousePressed(()=>{
+    defaultRepeats ++;
+    repeats = defaultRepeats;
+  });
+
+
+  let repeatMinus = createButton("-");
+  repeatMinus.elt.classList.add("plusminus");
+  //position(repeatMinus, grille.x + 28, grille.y + 102);
+  repeatMinus.parent(repeteDiv);
+  repeatMinus.mousePressed(()=>{
+    defaultRepeats --;
+    repeats = defaultRepeats;
+  });
 
   let showAll = createButton("Display toute");
   let scrollThingsTxt = createDiv("<span class='keys'>[z],[x]</span> to search");
-  scrollThingsTxt.class("show_all_btn");
+  scrollThingsTxt.elt.setAttribute("class","show_all_btn");
 
   showAll.mousePressed(()=>{
     showMe =-1;
@@ -204,18 +212,18 @@ function setupInterface(){
   });
   showAll.parent(rightui_el);
   scrollThingsTxt.parent(rightui_el);
-  showAll.class("show_all_btn");
+  showAll.elt.setAttribute("class","show_all_btn");
 
 
   //createDiv("[N] to clear screen. [S] to save seamless square. If there's an image, O to resize and P to position image.")
 }
 
-function kspan(input){
-  return "<span class='keys'>["+input+"]</span>";
+function kspan(i){
+  return "<span class='keys'>["+i+"]</span>";
 }
 
 
-function onScroll(){
+function doscroll(){
   breakFocus=true;
 }
 
@@ -261,7 +269,7 @@ function showInterface(){
   stroke(185);
   strokeWeight(1);
   line(grille.x - 20,grille.y - 10,grille.x - 20,grille.y+160);
-  line(imgarea.x + 60, imgarea.y - 10, imgarea.x + 60, imgarea.y+160);
+  line(imgArea.x + 60, imgArea.y - 10, imgArea.x + 60, imgArea.y+160);
   line(loadarea.x - 20,loadarea.y,loadarea.x - 20,loadarea.y+160);
 
   swatches.selection =-1;
@@ -324,6 +332,11 @@ function showInterface(){
 let rui = [];
 let rightui_el;
 
+function selectStroke(i){
+  showMe = i;
+  breakFocus=false;
+}
+
 function refreshRightUI(){
   for(let i=rui.length-1; i>=0; i--){
     rui[i].remove();
@@ -333,35 +346,66 @@ function refreshRightUI(){
 
   for(let i=0; i<strokes.length; i++){
 
+    // a box to contain all of this stroke's settings
     let controlpannel = createDiv(`${i}  `);
+    rui.push(controlpannel);
     controlpannel.parent(rightui_el);
-    controlpannel.class("line_box");
+    controlpannel.elt.setAttribute("class","line_box");
 
     controlpannel.mousePressed(()=>{
-      showMe = i;
-      breakFocus=false;
+      selectStroke(i);
     });
 
+    // delete button
     let deleteBtn = createButton("delete");
+    rui.push(deleteBtn);
     deleteBtn.parent(controlpannel);
-    deleteBtn.class("deletebtn");
+    deleteBtn.elt.setAttribute("class","deletebtn");
+
+    deleteBtn.mousePressed(()=>{
+      strokes.splice(i,1);
+      refreshRightUI();
+    });
+
+    // line thickness control:
 
     let plusThickness = createButton("+");
     plusThickness.parent(controlpannel);
+    rui.push(plusThickness);
+
+    plusThickness.mousePressed(()=>{
+      strokes[i].forEach(stroke=>{
+        stroke.size++;
+        selectStroke(i);
+      });
+    });
+
     let minusThickness = createButton("-");
     minusThickness.parent(controlpannel);
+    rui.push(minusThickness);
 
+    minusThickness.mousePressed(()=>{
+      strokes[i].forEach(stroke=>{
+        stroke.size--;
+        selectStroke(i);
+      });
+    });
+
+    // color selection button
     let colorSelect = createButton("colo");
     colorSelect.parent(controlpannel);
+    rui.push(colorSelect);
+
     colorSelect.mousePressed(()=>{
       colorSelector =i;
-      console.log("select my color "+ i)
       refreshRightUI();
+      selectStroke(i);
     });
     colorSelect.elt.style.color=colors[strokes[i][0].stroke];
     colorSelect.elt.style.backgroundColor="white";
 
-    controlpannel.elt.innerHTML+="<br>";
+    //controlpannel.elt.innerHTML+="<br>";
+
 
     let moveLeft = createButton("gau");
     moveLeft.parent(controlpannel);
@@ -373,25 +417,8 @@ function refreshRightUI(){
     moveDown.parent(controlpannel);
 
 
-
-    deleteBtn.mousePressed(()=>{
-      strokes.splice(i,1);
-      refreshRightUI();
-    });
-
-    plusThickness.mousePressed(()=>{
-      strokes[i].forEach(stroke=>{
-        stroke.size++;
-      });
-    });
-
-    minusThickness.mousePressed(()=>{
-      strokes[i].forEach(stroke=>{
-        stroke.size--;
-      });
-    });
-
     moveLeft.mousePressed(()=>{
+      selectStroke(i);
       strokes[i].forEach(stroke=>{
         stroke.x1 -= interval;
         stroke.x2 -= interval;
@@ -400,6 +427,7 @@ function refreshRightUI(){
     });
 
     moveRight.mousePressed(()=>{
+      selectStroke(i);
       strokes[i].forEach(stroke=>{
         stroke.x1 += interval;
         stroke.x2 += interval;
@@ -408,6 +436,7 @@ function refreshRightUI(){
     });
 
     moveUp.mousePressed(()=>{
+      selectStroke(i);
       strokes[i].forEach(stroke=>{
         stroke.y1 -= interval;
         stroke.y2 -= interval;
@@ -416,6 +445,7 @@ function refreshRightUI(){
     });
 
     moveDown.mousePressed(()=>{
+      selectStroke(i);
       strokes[i].forEach(stroke=>{
         stroke.y1 += interval;
         stroke.y2 += interval;
@@ -424,14 +454,13 @@ function refreshRightUI(){
     });
 
 
-    rui.push(controlpannel);
-    rui.push(deleteBtn);
-    rui.push(plusThickness);
-    rui.push(minusThickness);
+
+
+
     rui.push(moveLeft);
     rui.push(moveRight);
     rui.push(moveUp);
     rui.push(moveDown);
-    rui.push(colorSelect);
+
   }
 }

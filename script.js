@@ -14,25 +14,25 @@ let colors = ["black","blue","tomato","green","orange",235];
 let colorSelection =0;
 let wheel;
 let breakFocus=false;
-
 let positionImage = false;
 let resizeImage = false;
-
-let imgPos = {
-  x:0,y:0
-}
-
-let imgSize = {
-  x:300,y:300
-}
+let imgPos = {x:0,y:0};
+let imgSize = {x:300,y:300};
+let started = false;
 
 let PMouseX =0;
 let PMouseY =0;
 
+// preload()
+//
+//
 function preload(){
   wheel = loadImage("wheel.png");
 }
 
+// setup()
+//
+//
 function setup(){
   preloadColorPicker();
   PMouseX = mouseX;
@@ -43,16 +43,22 @@ function setup(){
   setupInterface();
 
   clearEverything();
+  started=true;
 }
 
+// preloadColorPicker()
+//
+//
 function preloadColorPicker(){
   createCanvas(swatches.size,swatches.size);
   image(wheel, 0, 0, swatches.size, swatches.size);
   loadPixels();
 }
 
+// clearEverything()
+//
+//
 function clearEverything(){
-  console.log("clear")
 
   buffer = [];
   strokes = [];
@@ -61,51 +67,54 @@ function clearEverything(){
   refreshRightUI();
 }
 
+// draw()
+//
+//
 function draw(){
-  //if(drawing&&mouseIsPressed) return;
-  //if(buffer.length>0) finalizeButton.show();
-  //else finalizeButton.hide();
 
+  // refresh background
   background(235);
-
 
   // show selected line clearly
   let els = document.getElementsByClassName("line_box");
-
   if(!breakFocus)
   for(let i=0; i<els.length; i++){
     if(showMe==i){
       els[i].style.backgroundColor = "gold";
-      console.log(els[i])
       els[i].scrollIntoView();
     }
     else els[i].style.backgroundColor = "white";
   }
 
+  // display image
   if(imageDisplayed){
     image(img,imgPos.x,imgPos.y,imgSize.x,imgSize.y);
     background(235,180);
   }
 
+  // display back grid
   if(gridEnabled && !saveimage){
     showGrid();
   }
 
+  // display all lines
   displayStrokes();
 
+  // display line we're currently drawing
   displayLineBuffer();
 
+  // display front grid
   if(frontGridEnabled&&!saveimage){
     showGrid();
   }
 
+  // display brush where mouse is
   showPointer();
 
-
-  // interface
+  // refresh interface
   showInterface()
 
-
+  // if save is triggered, resize and save
   if(saveimage){
     saveCanvas();
     createCanvas(window.innerWidth-30, window.innerHeight-30);
@@ -114,11 +123,12 @@ function draw(){
 }
 
 
-
+// showPointer()
+//
+// draw point under mouse
 function showPointer(){
-  // draw point under mouse
   if(!saveimage){
-    stroke(color);
+    stroke(colors[colorSelection]);
     strokeWeight(brushSize);
     point(mouseX,mouseY);
   }
@@ -127,25 +137,29 @@ function showPointer(){
 
 
 
-
+// displayStrokes()
+//
+// display all lines in strokes[]
 function displayStrokes(){
 
   for(let j=0; j<strokes.length; j++){
-
     let c = strokes[j][0].stroke;
     let s = strokes[j][0].size;
 
+    // prevent display if color is unchecked
     if(colorCheckboxes[c].checked()){
 
-      if(showMe==-1||showMe==j)
-      stroke(colors[c]);
+      // assign color depending on line selection
+      if(showMe==-1||showMe==j) stroke(colors[c]);
       else stroke(0,20);
+
       strokeWeight(s);
 
+      // display each segment
       for(let i=0; i<strokes[j].length; i++){
-
         let l = strokes[j][i];
 
+        // repeat along x and y axis
         for(let x=-repeats; x<repeats+1; x++){
           for(let y=-repeats; y<repeats+1; y++){
 
@@ -164,19 +178,22 @@ function displayStrokes(){
 
 
 
-
+// deleteLinesOfSelectedColor()
+//
+// remove all lines matching the currently selected color.
 function deleteLinesOfSelectedColor(){
   for(let i=strokes.length-1; i>=0; i--){
     if(strokes[i][0].stroke==colorSelection) strokes.splice(i,1);
   }
-
   refreshRightUI();
 }
 
 
 
 
-
+// displayLineBuffer()
+//
+// display the current line (while mouse is still pressed)
 function displayLineBuffer(){
   for(let i=0; i<buffer.length; i++){
     for(let x=-repeats; x<repeats+1; x++){
@@ -199,7 +216,9 @@ function displayLineBuffer(){
 
 
 
-
+// showGrid()
+//
+//
 function showGrid(){
 
   stroke(255);
@@ -214,52 +233,13 @@ function showGrid(){
 
 
 
-function mousePressed(){
-
-  PMouseX = mouseX;
-  PMouseY = mouseY;
-
-  if(positionImage||resizeImage){
-    positionImage = false;
-    resizeImage = false;
-    return;
-  }
-
-  drawing = mouseY<ui.y && mouseX<rightui.x;
-
-  if(drawing){
-    repeats=defaultRepeats;
-    showMe=-1;
-    flushBuffer();
-    colorSelector=-1;
-  }
-}
 
 
 
 
-function mouseMoved(){
-  if(positionImage){
-    imgPos.x = mouseX;
-    imgPos.y = mouseY;
-  }
-  else if(resizeImage){
-    imgSize.x += mouseX - pmouseX;
-    imgSize.y += mouseY - pmouseY;
-  }
-
-  // draw point under mouse
-  if(!saveimage){
-    stroke(color);
-    strokeWeight(brushSize);
-    point(mouseX,mouseY);
-  }
-}
-
-
-
-
-
+// flushBuffer()
+//
+//
 function flushBuffer(){
   for(let i=0; i<buffer.length; i++){
     buffer[i].size=brushSize;
@@ -277,82 +257,6 @@ function flushBuffer(){
 
 
 
-function mouseReleased(){
-  if(drawing)
-  flushBuffer();
-}
-
-
-
-
-
-
-
-function mouseDragged(){
-  if(!drawing){
-    if(swatches.selection!=-1){
-      let i = 4*(swatches.coords.x + swatches.coords.y * swatches.size);
-      colors[colorSelection] = `rgb(${pixels[i]},${pixels[i+1]},${pixels[i+2]})`;
-    }
-    return;
-  }
-
-  buffer.push({
-    size:brushSize,
-    stroke:color,
-    x1:mouseX,
-    y1:mouseY,
-    x2:PMouseX,
-    y2:PMouseY
-  });
-
-  stroke("green");//colors[colorSelection]);
-  line(mouseX,mouseY,PMouseX,PMouseY);
-
-  PMouseX = mouseX;
-  PMouseY = mouseY;
-}
-
-function keyTyped() {
-  if(key==1) colorSelection=0;
-  if(key==2) colorSelection=1;
-  if(key==3) colorSelection=2;
-  if(key==4) colorSelection=3;
-  if(key==5) colorSelection=4;
-  if(key==6) colorSelection=5;
-  color = colors[colorSelection];
-
-  if(keyCode==13) flushBuffer();
-
-  // esc
-  if(keyCode==27) selectNone();
-
-  if(key=='n') clearEverything();
-  if(key=='+') plusBrushSize();
-  if(key=='-') minusBrushSize();
-
-  if(key=='z') showLast();
-  if(key=='x') showNext();
-  if(key=='c') showSingle();
-  if(key=='v') showAll();
-
-  if(key=='o'){
-    resizeImage = true;
-    positionImage = false;
-  }
-  if(key=='p'){
-    positionImage = true;
-    resizeImage = false;
-  }
-
-  if(key=='s'){
-    saveImage();
-  }
-
-  if(key=='q') saveDataToFile();
-
-  if(key=='d') deleteLinesOfSelectedColor();
-}
 
 function saveImage(){
   saveimage = true;

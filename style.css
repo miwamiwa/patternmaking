@@ -15,10 +15,19 @@ button{
   font-size:12px;
 }
 
+.repeteDiv{
+  margin:5px;
+}
+
+.plusminus{
+  display:inline-block;
+  margin-left:4px;
+}
+
 .rightUI{
   position:fixed;
   background-color:#777b;
-  width:220px;
+  width:200px;
   height:96vh;
   overflow-y:scroll;
   top:8px;
